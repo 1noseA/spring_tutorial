@@ -8,7 +8,7 @@
 <h3>会議室</h3>
 <!-- 前日の日付をLocalDate#minusDaysメソッドを呼ぶことで取得 -->
 <a th:href="@{'/rooms/' + ${date.minusDays(1)}}">&lt; 前日</a>
-<span th:text="|${#tempolals.format(date, 'yyyy/M/d')}の会議室|">2021/5/20の会議室</span>
+<span th:text="|${#temporals.format(date, 'yyyy/M/d')}の会議室|">2021/5/20の会議室</span>
 <!-- 翌日の日付をLocalDate#plusDaysメソッドを呼ぶことで取得 -->
 <a th:href="@{'/rooms/' + ${date.plusDays(1)}}">翌日 &gt;</a>
 

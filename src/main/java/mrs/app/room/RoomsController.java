@@ -15,7 +15,7 @@ import mrs.domain.model.ReservableRoom;
 import mrs.domain.service.room.RoomService;
 
 @Controller
-@RequestMapping("room")
+@RequestMapping("rooms")
 public class RoomsController {
 
 	@Autowired
