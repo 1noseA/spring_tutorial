@@ -31,6 +31,7 @@ public class ReservationService {
 		ReservableRoom reservable = reservableRoomRepository.getOne(reservableRoomId);
 		if (reservable == null) {
 			// 例外をスローする
+			throw new UnavailableReservationException("入力の日付・部屋の組み合わせは予約できません。");
 		}
 		// 重複チェック
 		boolean overlap = reservationRepository.findByReservableRoom_ReservableRoomIdOrderByStartTimeAsc(reservableRoomId)
@@ -38,6 +39,7 @@ public class ReservationService {
 				.anyMatch(x -> x.overlap(reservation));
 		if (overlap) {
 			// 重複がある場合、例外をスローする
+			throw new AlreadyReservedException("入力の時間帯はすでに予約済みです");
 		}
 		// 予約情報の登録
 		reservationRepository.save(reservation);
