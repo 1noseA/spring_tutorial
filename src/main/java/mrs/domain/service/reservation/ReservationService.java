@@ -1,6 +1,7 @@
 package mrs.domain.service.reservation;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -9,6 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 import mrs.domain.model.ReservableRoom;
 import mrs.domain.model.ReservableRoomId;
 import mrs.domain.model.Reservation;
+import mrs.domain.model.RoleName;
+import mrs.domain.model.User;
 import mrs.domain.repository.reservation.ReservationRepository;
 import mrs.domain.repository.room.ReservableRoomRepository;
 
@@ -44,5 +47,18 @@ public class ReservationService {
 		// 予約情報の登録
 		reservationRepository.save(reservation);
 		return reservation;
+	}
+
+	// 予約取り消し処理
+	public void cancel(Integer reservationId, User requestUser) {
+		Reservation reservation = reservationRepository.getOne(reservationId);
+		// 予約情報を取り消す権限を持つかチェック
+		// USERロールの場合は自分が予約した情報のみ、ADMINロールの場合は全予約を取り消せる
+		if (RoleName.ADMIN != requestUser.getRoleName() &&
+				!Objects.equals(reservation.getUser().getUserId(), requestUser.getUserId())) {
+			// 権限がない場合
+			throw new IllegalStateException("要求されたキャンセルは許可できません。");
+		}
+		reservationRepository.delete(reservation);
 	}
 }

@@ -7,7 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import mrs.domain.model.MeetingRoom;
 import mrs.domain.model.ReservableRoom;
+import mrs.domain.repository.reservation.MeetingRoomRepository;
 import mrs.domain.repository.room.ReservableRoomRepository;
 
 // Serviceクラスとして扱うアノテーション
@@ -15,6 +17,14 @@ import mrs.domain.repository.room.ReservableRoomRepository;
 // このクラスの各メソッドが自動でトランザクション管理されるようにする
 @Transactional
 public class RoomService {
+
+	@Autowired
+	MeetingRoomRepository meetingRoomRepository;
+
+	// 会議情報取得処理
+	public MeetingRoom findMeetingRoom(Integer roomId) {
+		return meetingRoomRepository.getOne(roomId);
+	}
 
 	// ReservableRoomRepositoryをインジェクションする
 	@Autowired
