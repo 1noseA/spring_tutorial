@@ -2,6 +2,7 @@ package mrs.domain.model;
 
 import java.io.Serializable;
 import java.time.LocalTime;
+import java.util.Objects;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -33,6 +34,19 @@ public class Reservation implements Serializable {
 	@ManyToOne
 	@JoinColumn(name = "user_id")
 	private User user;
+
+	public boolean overlap(Reservation target) {
+		// 2つの予約の日付・部屋が別であれば重複していないためfalse
+		if (!Objects.equals(reservableRoom.getReservableRoomId(), target.reservableRoom.getReservableRoomId())) {
+			return false;
+		}
+		// 2つの予約の開始時刻と終了時刻が一致する場合は重複であるためtrue
+		if (startTime.equals(target.startTime) && endTime.equals(target.endTime)) {
+			return true;
+		}
+		// 2つの予約の開始時刻と終了時刻が交差しているか、または包括関係にあるかを返す
+		return target.endTime.isAfter(startTime) && endTime.isAfter(target.startTime);
+	}
 
 
 	public Integer getReservationId() {
