@@ -1,18 +1,16 @@
 package mrs.domain.service.reservation;
 
 import java.util.List;
-import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.method.P;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import mrs.domain.model.ReservableRoom;
 import mrs.domain.model.ReservableRoomId;
 import mrs.domain.model.Reservation;
-import mrs.domain.model.RoleName;
-import mrs.domain.model.User;
 import mrs.domain.repository.reservation.ReservationRepository;
 import mrs.domain.repository.room.ReservableRoomRepository;
 
@@ -52,15 +50,26 @@ public class ReservationService {
 	}
 
 	// 予約取り消し処理
-	public void cancel(Integer reservationId, User requestUser) {
-		Reservation reservation = reservationRepository.getOne(reservationId);
-		// 予約情報を取り消す権限を持つかチェック
-		// USERロールの場合は自分が予約した情報のみ、ADMINロールの場合は全予約を取り消せる
-		if (RoleName.ADMIN != requestUser.getRoleName() &&
-				!Objects.equals(reservation.getUser().getUserId(), requestUser.getUserId())) {
-			// 権限がない場合
-			throw new AccessDeniedException("要求されたキャンセルは許可できません。");
-		}
+//	public void cancel(Integer reservationId, User requestUser) {
+//		Reservation reservation = reservationRepository.getOne(reservationId);
+//		// 予約情報を取り消す権限を持つかチェック
+//		// USERロールの場合は自分が予約した情報のみ、ADMINロールの場合は全予約を取り消せる
+//		if (RoleName.ADMIN != requestUser.getRoleName() &&
+//				!Objects.equals(reservation.getUser().getUserId(), requestUser.getUserId())) {
+//			// 権限がない場合
+//			throw new AccessDeniedException("要求されたキャンセルは許可できません。");
+//		}
+//		reservationRepository.delete(reservation);
+//	}
+
+	// メソッド実行前に認可処理を行う
+	@PreAuthorize("hasRole('ADMIN') or #reservation.user.userId == principal.user.userId")
+	public void cancel(@P("reservation") Reservation reservation) {
 		reservationRepository.delete(reservation);
+	}
+
+	// Reservationオブジェクトを予約IDから取得する
+	public Reservation findOne(Integer reservationId) {
+		return reservationRepository.getOne(reservationId);
 	}
 }
