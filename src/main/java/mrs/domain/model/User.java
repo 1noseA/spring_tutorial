@@ -8,8 +8,10 @@ import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-@Entity
+import org.hibernate.annotations.Proxy;
 
+@Entity
+@Proxy(lazy = false)
 // マッピング先のテーブル名を指定する
 @Table(name = "usr")
 public class User implements Serializable {
