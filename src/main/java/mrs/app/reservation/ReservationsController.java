@@ -8,6 +8,8 @@ import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -21,12 +23,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import mrs.domain.model.ReservableRoom;
 import mrs.domain.model.ReservableRoomId;
 import mrs.domain.model.Reservation;
-import mrs.domain.model.RoleName;
 import mrs.domain.model.User;
 import mrs.domain.service.reservation.AlreadyReservedException;
 import mrs.domain.service.reservation.ReservationService;
 import mrs.domain.service.reservation.UnavailableReservationException;
 import mrs.domain.service.room.RoomService;
+import mrs.domain.service.user.ReservationUserDetails;
 
 @Controller
 // リクエストパスからdateとroomIdを取れるようにする
@@ -67,23 +69,25 @@ public class ReservationsController {
 		model.addAttribute("reservations", reservations);
 		model.addAttribute("timeList", timeList);
 		// 予約ユーザとしてダミーを設定する
-		model.addAttribute("user", dummyUser());
+		// model.addAttribute("user", dummyUser());
 		return "reservation/reserveForm";
 	}
 
-	private User dummyUser() {
-		User user = new User();
-		user.setUserId("taro-yamada");
-		user.setFirstName("太郎");
-		user.setLastName("山田");
-		user.setRoleName(RoleName.USER);
-		return user;
-	}
+//	private User dummyUser() {
+//		User user = new User();
+//		user.setUserId("taro-yamada");
+//		user.setFirstName("太郎");
+//		user.setLastName("山田");
+//		user.setRoleName(RoleName.USER);
+//		return user;
+//	}
 
 	// 予約処理
 	@RequestMapping(method = RequestMethod.POST)
 	// @Validatedをつけると入力チェックが行われる
 	String reserve(@Validated ReservationForm form, BindingResult bindingResult,
+			// 認証済みのUserDetailsオブジェクトを取得する
+			@AuthenticationPrincipal ReservationUserDetails userDetails,
 			@DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @PathVariable("date") LocalDate date,
 			@PathVariable("roomId") Integer roomId, Model model) {
 		// bindingResult.hasErrorsメソッドの入力チェックエラーがあるかどうかを確認できる
@@ -97,7 +101,8 @@ public class ReservationsController {
 		reservation.setStartTime(form.getStartTime());
 		reservation.setEndTime(form.getEndTime());
 		reservation.setReservableRoom(reservableRoom);
-		reservation.setUser(dummyUser());
+		// ReservationUserDetailsオブジェクトから認証済みのUserオブジェクトを取得し予約処理に使用する
+		reservation.setUser(userDetails.getUser());
 
 		try {
 			reservationService.reserve(reservation);
@@ -112,14 +117,17 @@ public class ReservationsController {
 
 	// 予約取り消し処理
 	@RequestMapping(method = RequestMethod.POST, params = "cancel")
-	String cancel(@RequestParam("reservationId") Integer reservationId,
+	// 認証済みのUserDetailsオブジェクトを取得する
+	String cancel(@AuthenticationPrincipal ReservationUserDetails userDetails,
+			@RequestParam("reservationId") Integer reservationId,
 			@PathVariable("roomId") Integer roomId,
 			@DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @PathVariable("date") LocalDate date,
 			Model model) {
-		User user = dummyUser();
+		// ReservationUserDetailsオブジェクトから認証済みのUserオブジェクトを取得し予約処理に使用する
+		User user = userDetails.getUser();
 		try {
 			reservationService.cancel(reservationId, user);
-		} catch (IllegalStateException e) {
+		} catch (AccessDeniedException e) {
 			model.addAttribute("error", e.getMessage());
 			return reserveForm(date, roomId, model);
 		}

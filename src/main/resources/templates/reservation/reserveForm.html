@@ -1,10 +1,12 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+	  xmlns:sec="http://www.thymeleaf.org/extras/spring-securty">
 <head>
 	<meta charset="UTF-8">
 	<title th:text="|${#temporals.format(date, 'yyyy/M/d')}の${room.roomName}|">2021/5/20の豊洲</title>
 </head>
-<body>
+<!-- th:with="user=${...}"で変数名userに値を代入する -->
+<body th:with="user=${#authentication.principal.user}">
 	<div>
 		<a th:href="@{'/rooms/' + ${date}}">会議室一覧へ</a>
 	</div>
@@ -51,8 +53,10 @@
 				<span th:text="${reservation.user.firstName}" />
 			</td>
 			<td>
+				<!-- sec:authorizeで対象のHTML要素が表示されるための認可条件を記述できる -->
+				<!-- RoleがADMINまたはログインユーザのIDと予約者のユーザIDが一致した場合に取り消しフォームを表示 -->
 				<form th:action="@{'/reservations/' + ${date} + '/' + ${roomId}}" method="post"
-					  th:if="${user.userId == reservation.user.userId}">
+					  sec:authorize="${hasRole('ADMIN') or #vars.user.userId == #vars.reservation.user.userId}">
 					<input type="hidden" name="reservationId" th:value="${reservation.reservationId}" />
 					<input type="submit" name="cancel" value="取消" />
 				</form>
