@@ -13,9 +13,9 @@
 		  th:action="@{'/reservations/' + ${date} + '/' + ${roomId}}" method="post">
 		会議室：<span th:text="${room.roomName}">豊洲</span>
 		<br/>
-		予約者：<span th:text="${user.lastName + ' ' + user.first.Name}">山田太郎</span>
+		予約者：<span th:text="${user.lastName + ' ' + user.firstName}">山田太郎</span>
 		<br/>
-		日付：<span th:text="${#temporals.format(date, 'yyy/M/d')}">2021/5/20</span>
+		日付：<span th:text="${#temporals.format(date, 'yyyy/M/d')}">2021/5/20</span>
 		<br/>
 		時間帯：
 		<select th:field="*{startTime}">
